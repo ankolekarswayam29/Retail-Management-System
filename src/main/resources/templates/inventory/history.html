@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{layout/header :: head}">
+    <title>Product Stock History - Retail Management System</title>
+</head>
+<body>
+    <div th:replace="~{layout/header :: navbar}"></div>
+
+    <div class="container-fluid mt-4">
+        <div class="row">
+            <div class="col-12">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2>
+                        <i class="fas fa-history me-2"></i>Stock History - <span th:text="${product.name}">Product</span>
+                    </h2>
+                    <a href="/inventory" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left me-2"></i>Back to Inventory
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Product Info -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3">
+                        <strong>Product Code:</strong>
+                        <span th:text="${product.productCode}">PRD-001</span>
+                    </div>
+                    <div class="col-md-3">
+                        <strong>Current Stock:</strong>
+                        <span class="text-primary" th:text="${product.stockQuantity} + ' ' + ${product.unit}">10 pcs</span>
+                    </div>
+                    <div class="col-md-3">
+                        <strong>Minimum Stock:</strong>
+                        <span th:text="${product.minimumStock} + ' ' + ${product.unit}">10 pcs</span>
+                    </div>
+                    <div class="col-md-3">
+                        <strong>Status:</strong>
+                        <span th:if="${product.isOutOfStock()}" class="badge badge-danger">Out of Stock</span>
+                        <span th:if="${product.isLowStock() && !product.isOutOfStock()}" class="badge badge-warning">Low Stock</span>
+                        <span th:if="!${product.isLowStock()}" class="badge badge-success">In Stock</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Transactions Table -->
+        <div class="card">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Type</th>
+                                <th>Quantity</th>
+                                <th>Previous</th>
+                                <th>New</th>
+                                <th>Reference</th>
+                                <th>Notes</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="transaction : ${transactions}">
+                                <td th:text="${#temporals.format(transaction.createdAt, 'MMM dd, yyyy HH:mm')}">Jan 01, 2024 10:00</td>
+                                <td>
+                                    <span th:if="${transaction.transactionType == 'PURCHASE'}" class="badge badge-success">PURCHASE</span>
+                                    <span th:if="${transaction.transactionType == 'SALE'}" class="badge badge-danger">SALE</span>
+                                    <span th:if="${transaction.transactionType == 'ADJUSTMENT'}" class="badge badge-warning">ADJUSTMENT</span>
+                                    <span th:if="${transaction.transactionType == 'RETURN'}" class="badge badge-info">RETURN</span>
+                                    <span th:if="${transaction.transactionType == 'DAMAGE'}" class="badge badge-danger">DAMAGE</span>
+                                </td>
+                                <td th:text="${transaction.quantity}">10</td>
+                                <td th:text="${transaction.previousQuantity}">10</td>
+                                <td th:text="${transaction.newQuantity}">10</td>
+                                <td>
+                                    <span th:if="${transaction.referenceType != null}" 
+                                          th:text="${transaction.referenceType + ' #' + (transaction.referenceId != null ? transaction.referenceId : '')}">SALE #1</span>
+                                    <span th:unless="${transaction.referenceType != null}">N/A</span>
+                                </td>
+                                <td th:text="${transaction.notes != null ? transaction.notes : 'N/A'}">Notes</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div th:if="${transactions == null || transactions.empty}" class="text-center text-muted py-4">
+                    <i class="fas fa-history fa-3x mb-3"></i>
+                    <p>No stock history found for this product</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div th:replace="~{layout/header :: scripts}"></div>
+</body>
+</html>

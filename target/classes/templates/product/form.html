@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{layout/header :: head}">
+    <title th:text="${product.id != null ? 'Edit Product' : 'Add Product'} + ' - Retail Management System'">Product Form</title>
+</head>
+<body>
+    <div th:replace="~{layout/header :: navbar}"></div>
+
+    <div class="container-fluid mt-4">
+        <div class="row">
+            <div class="col-12">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2>
+                        <i class="fas fa-box me-2"></i>
+                        <span th:text="${product.id != null ? 'Edit Product' : 'Add Product'}">Add Product</span>
+                    </h2>
+                    <a href="/products" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left me-2"></i>Back to List
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Alert Messages -->
+        <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <span th:text="${error}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+
+        <!-- Product Form -->
+        <div class="card">
+            <div class="card-body">
+                <form th:action="@{/products/save}" th:object="${product}" method="post">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="productCode" class="form-label">Product Code *</label>
+                            <input type="text" class="form-control" id="productCode" th:field="*{productCode}" required>
+                            <div class="text-danger" th:if="${#fields.hasErrors('productCode')}" th:errors="*{productCode}"></div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="name" class="form-label">Product Name *</label>
+                            <input type="text" class="form-control" id="name" th:field="*{name}" required>
+                            <div class="text-danger" th:if="${#fields.hasErrors('name')}" th:errors="*{name}"></div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Description</label>
+                        <textarea class="form-control" id="description" th:field="*{description}" rows="3"></textarea>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="category" class="form-label">Category</label>
+                            <select class="form-select" id="category" th:field="*{category.id}">
+                                <option value="">Select Category</option>
+                                <option th:each="cat : ${categories}" 
+                                        th:value="${cat.id}" 
+                                        th:text="${cat.name}"
+                                        th:selected="${product.category != null && product.category.id == cat.id}">Category</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="supplier" class="form-label">Supplier</label>
+                            <select class="form-select" id="supplier" th:field="*{supplier.id}">
+                                <option value="">Select Supplier</option>
+                                <option th:each="sup : ${suppliers}" 
+                                        th:value="${sup.id}" 
+                                        th:text="${sup.name}"
+                                        th:selected="${product.supplier != null && product.supplier.id == sup.id}">Supplier</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label for="purchasePrice" class="form-label">Purchase Price *</label>
+                            <input type="number" class="form-control" id="purchasePrice" th:field="*{purchasePrice}" step="0.01" min="0" required>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="sellingPrice" class="form-label">Selling Price *</label>
+                            <input type="number" class="form-control" id="sellingPrice" th:field="*{sellingPrice}" step="0.01" min="0" required>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="unit" class="form-label">Unit</label>
+                            <input type="text" class="form-control" id="unit" th:field="*{unit}" placeholder="pcs, kg, etc.">
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label for="stockQuantity" class="form-label">Initial Stock Quantity *</label>
+                            <input type="number" class="form-control" id="stockQuantity" th:field="*{stockQuantity}" min="0" required>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="minimumStock" class="form-label">Minimum Stock Alert</label>
+                            <input type="number" class="form-control" id="minimumStock" th:field="*{minimumStock}" min="0">
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="active" class="form-label">Status</label>
+                            <select class="form-select" id="active" th:field="*{active}">
+                                <option value="true">Active</option>
+                                <option value="false">Inactive</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="imagePath" class="form-label">Image Path</label>
+                        <input type="text" class="form-control" id="imagePath" th:field="*{imagePath}" placeholder="/images/product.jpg">
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-2">
+                        <a href="/products" class="btn btn-secondary">Cancel</a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-2"></i>
+                            <span th:text="${product.id != null ? 'Update Product' : 'Save Product'}">Save Product</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div th:replace="~{layout/header :: scripts}"></div>
+</body>
+</html>

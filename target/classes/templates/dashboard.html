@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{layout/header :: head}">
+    <title>Dashboard - Retail Management System</title>
+</head>
+<body>
+    <div th:replace="~{layout/header :: navbar}"></div>
+
+    <div class="container-fluid mt-4">
+        <div class="row">
+            <div class="col-12">
+                <h2 class="mb-4">
+                    <i class="fas fa-tachometer-alt me-2"></i>Dashboard
+                </h2>
+            </div>
+        </div>
+
+        <!-- Alert Messages -->
+        <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+            <span th:text="${success}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+
+        <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <span th:text="${error}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+
+        <!-- Statistics Cards -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="stat-card primary">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="stat-value" th:text="${stats.totalProducts}">0</div>
+                            <div class="stat-label">Total Products</div>
+                        </div>
+                        <div class="stat-icon">
+                            <i class="fas fa-box"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card success">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="stat-value" th:text="${stats.totalCustomers}">0</div>
+                            <div class="stat-label">Total Customers</div>
+                        </div>
+                        <div class="stat-icon">
+                            <i class="fas fa-users"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card warning">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="stat-value" th:text="${stats.totalSuppliers}">0</div>
+                            <div class="stat-label">Total Suppliers</div>
+                        </div>
+                        <div class="stat-icon">
+                            <i class="fas fa-truck"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card info">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="stat-value" th:text="${stats.totalSales}">0</div>
+                            <div class="stat-label">Total Sales</div>
+                        </div>
+                        <div class="stat-icon">
+                            <i class="fas fa-shopping-cart"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Revenue Cards -->
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <div class="card dashboard-card">
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            <i class="fas fa-calendar-day me-2"></i>Today's Revenue
+                        </h5>
+                        <h3 class="text-success" th:text="'$' + ${stats.todayRevenue}">$0.00</h3>
+                        <p class="text-muted mb-0">
+                            <span th:text="${stats.todaySalesCount} + ' sales today'">0 sales today</span>
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card dashboard-card">
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            <i class="fas fa-calendar-alt me-2"></i>Monthly Revenue
+                        </h5>
+                        <h3 class="text-primary" th:text="'$' + ${stats.monthlyRevenue}">$0.00</h3>
+                        <p class="text-muted mb-0">Current month</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Low Stock Alert -->
+        <div th:if="${stats.lowStockCount > 0}" class="row mb-4">
+            <div class="col-12">
+                <div class="card border-warning">
+                    <div class="card-header bg-warning text-dark">
+                        <i class="fas fa-exclamation-triangle me-2"></i>Low Stock Alert
+                    </div>
+                    <div class="card-body">
+                        <p class="mb-0">
+                            <strong th:text="${stats.lowStockCount} + ' products'">0 products</strong> are running low on stock.
+                            <a href="/inventory/low-stock" class="btn btn-sm btn-warning ms-2">View Details</a>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts and Recent Sales -->
+        <div class="row mb-4">
+            <div class="col-md-8">
+                <div class="card dashboard-card">
+                    <div class="card-header">
+                        <i class="fas fa-chart-line me-2"></i>Sales Chart
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container">
+                            <canvas id="salesChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card dashboard-card">
+                    <div class="card-header">
+                        <i class="fas fa-history me-2"></i>Recent Sales
+                    </div>
+                    <div class="card-body">
+                        <div th:if="${stats.recentSales != null && !stats.recentSales.empty}">
+                            <div th:each="sale : ${stats.recentSales}" class="mb-3 pb-3 border-bottom">
+                                <div class="d-flex justify-content-between">
+                                    <strong th:text="${sale.invoiceNumber}">INV-001</strong>
+                                    <span class="text-success" th:text="'$' + ${sale.totalAmount}">$0.00</span>
+                                </div>
+                                <small class="text-muted" th:text="${#temporals.format(sale.saleDate, 'MMM dd, HH:mm')}">Jan 01, 10:00</small>
+                            </div>
+                        </div>
+                        <div th:if="${stats.recentSales == null || stats.recentSales.empty}" class="text-center text-muted">
+                            <p class="mb-0">No recent sales</p>
+                        </div>
+                        <a href="/sales" class="btn btn-primary btn-sm w-100 mt-2">View All Sales</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Inventory Summary -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card dashboard-card">
+                    <div class="card-header">
+                        <i class="fas fa-warehouse me-2"></i>Inventory Summary
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <h5>Total Stock</h5>
+                                <h3 class="text-primary" th:text="${inventorySummary.totalStock}">0</h3>
+                            </div>
+                            <div class="col-md-4">
+                                <h5>Out of Stock</h5>
+                                <h3 class="text-danger" th:text="${inventorySummary.outOfStockCount}">0</h3>
+                            </div>
+                            <div class="col-md-4">
+                                <h5>Low Stock</h5>
+                                <h3 class="text-warning" th:text="${inventorySummary.lowStockCount}">0</h3>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div th:replace="~{layout/header :: scripts}"></div>
+    <script th:inline="javascript">
+        // Sales Chart
+        const ctx = document.getElementById('salesChart').getContext('2d');
+        const monthlySales = /*[[${chartData.monthlySales}]]*/ {};
+        
+        const labels = Object.keys(monthlySales).map(month => {
+            const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            return monthNames[parseInt(month) - 1];
+        });
+        const data = Object.values(monthlySales);
+        
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Monthly Revenue',
+                    data: data,
+                    borderColor: '#667eea',
+                    backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                    fill: true,
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>

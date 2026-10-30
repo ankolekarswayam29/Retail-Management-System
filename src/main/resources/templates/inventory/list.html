@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{layout/header :: head}">
+    <title th:text="${title != null ? title : 'Inventory'} + ' - Retail Management System'">Inventory</title>
+</head>
+<body>
+    <div th:replace="~{layout/header :: navbar}"></div>
+
+    <div class="container-fluid mt-4">
+        <div class="row">
+            <div class="col-12">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2>
+                        <i class="fas fa-warehouse me-2"></i>
+                        <span th:text="${title != null ? title : 'Inventory'}">Inventory</span>
+                    </h2>
+                    <div>
+                        <a href="/inventory/low-stock" class="btn btn-warning me-2">
+                            <i class="fas fa-exclamation-triangle me-2"></i>Low Stock
+                        </a>
+                        <a href="/inventory/out-of-stock" class="btn btn-danger me-2">
+                            <i class="fas fa-times-circle me-2"></i>Out of Stock
+                        </a>
+                        <a href="/inventory/transactions" class="btn btn-info">
+                            <i class="fas fa-history me-2"></i>Stock History
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Alert Messages -->
+        <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+            <span th:text="${success}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+
+        <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <span th:text="${error}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+
+        <!-- Inventory Table -->
+        <div class="card">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Code</th>
+                                <th>Name</th>
+                                <th>Category</th>
+                                <th>Stock</th>
+                                <th>Min Stock</th>
+                                <th>Unit</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="product : ${products}">
+                                <td th:text="${product.productCode}">PRD-001</td>
+                                <td th:text="${product.name}">Product Name</td>
+                                <td th:text="${product.category != null ? product.category.name : 'N/A'}">Category</td>
+                                <td th:text="${product.stockQuantity}">10</td>
+                                <td th:text="${product.minimumStock}">10</td>
+                                <td th:text="${product.unit}">pcs</td>
+                                <td>
+                                    <span th:if="${product.isOutOfStock()}" class="badge badge-danger">Out of Stock</span>
+                                    <span th:if="${product.isLowStock() && !product.isOutOfStock()}" class="badge badge-warning">Low Stock</span>
+                                    <span th:if="!${product.isLowStock()}" class="badge badge-success">In Stock</span>
+                                </td>
+                                <td>
+                                    <a th:href="@{/inventory/adjust/{id}(id=${product.id})}" class="btn btn-sm btn-primary me-1">
+                                        <i class="fas fa-edit"></i> Adjust
+                                    </a>
+                                    <a th:href="@{/inventory/history/{id}(id=${product.id})}" class="btn btn-sm btn-info">
+                                        <i class="fas fa-history"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div th:if="${products == null || products.empty}" class="text-center text-muted py-4">
+                    <i class="fas fa-warehouse fa-3x mb-3"></i>
+                    <p>No products found</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div th:replace="~{layout/header :: scripts}"></div>
+</body>
+</html>

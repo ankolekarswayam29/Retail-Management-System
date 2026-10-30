@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{layout/header :: head}">
+    <title>Invoice - Retail Management System</title>
+</head>
+<body>
+    <div th:replace="~{layout/header :: navbar}"></div>
+
+    <div class="container-fluid mt-4">
+        <div class="row">
+            <div class="col-12">
+                <div class="d-flex justify-content-between align-items-center mb-4 no-print">
+                    <h2>
+                        <i class="fas fa-file-invoice me-2"></i>Invoice
+                    </h2>
+                    <div>
+                        <button onclick="window.print()" class="btn btn-primary me-2">
+                            <i class="fas fa-print me-2"></i>Print
+                        </button>
+                        <a href="/billing" class="btn btn-secondary">
+                            <i class="fas fa-plus me-2"></i>New Bill
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Invoice -->
+        <div class="card">
+            <div class="card-body">
+                <div class="invoice-header">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h3>RetailPro</h3>
+                            <p>Retail Management System</p>
+                            <p>123 Business Street</p>
+                            <p>City, State 12345</p>
+                            <p>Phone: (555) 123-4567</p>
+                        </div>
+                        <div class="col-md-6 text-end">
+                            <h2>INVOICE</h2>
+                            <p><strong>Invoice Number:</strong> <span th:text="${sale.invoiceNumber}">INV-001</span></p>
+                            <p><strong>Date:</strong> <span th:text="${#temporals.format(sale.saleDate, 'MMM dd, yyyy HH:mm')}">Jan 01, 2024</span></p>
+                            <p><strong>Status:</strong> <span class="badge badge-success">PAID</span></p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <h5>Bill To:</h5>
+                        <div th:if="${sale.customer != null}">
+                            <p class="mb-0"><strong th:text="${sale.customer.name}">Customer Name</strong></p>
+                            <p class="mb-0" th:text="${sale.customer.customerCode}">CUST-001</p>
+                            <p class="mb-0" th:text="${sale.customer.phone}">123-456-7890</p>
+                            <p class="mb-0" th:if="${sale.customer.address != null}" th:text="${sale.customer.address}">Address</p>
+                        </div>
+                        <div th:unless="${sale.customer != null}">
+                            <p>Walk-in Customer</p>
+                        </div>
+                    </div>
+                    <div class="col-md-6 text-end">
+                        <h5>Payment Method:</h5>
+                        <p th:text="${sale.paymentMethod}">CASH</p>
+                    </div>
+                </div>
+
+                <table class="table table-bordered mb-4">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Product</th>
+                            <th>Price</th>
+                            <th>Quantity</th>
+                            <th>Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="item, iter : ${saleItems}">
+                            <td th:text="${iter.count + 1}">1</td>
+                            <td th:text="${item.product.name}">Product Name</td>
+                            <td th:text="'$' + ${item.unitPrice}">$0.00</td>
+                            <td th:text="${item.quantity}">1</td>
+                            <td th:text="'$' + ${item.totalPrice}">$0.00</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div class="invoice-total">
+                    <div class="row">
+                        <div class="col-md-6 offset-md-6">
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Subtotal:</span>
+                                <span th:text="'$' + ${sale.subtotal}">$0.00</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Tax:</span>
+                                <span th:text="'$' + ${sale.taxAmount}">$0.00</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Discount:</span>
+                                <span th:text="'-$' + ${sale.discountAmount}">$0.00</span>
+                            </div>
+                            <hr>
+                            <div class="d-flex justify-content-between">
+                                <strong>Total:</strong>
+                                <strong class="text-primary" style="font-size: 1.5rem;" th:text="'$' + ${sale.totalAmount}">$0.00</strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div th:if="${sale.notes != null && !sale.notes.isEmpty()}" class="mt-4">
+                    <h5>Notes:</h5>
+                    <p th:text="${sale.notes}">Notes</p>
+                </div>
+
+                <div class="mt-4 text-center text-muted no-print">
+                    <p>Thank you for your business!</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div th:replace="~{layout/header :: scripts}"></div>
+</body>
+</html>

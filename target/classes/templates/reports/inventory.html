@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{layout/header :: head}">
+    <title>Inventory Reports - Retail Management System</title>
+</head>
+<body>
+    <div th:replace="~{layout/header :: navbar}"></div>
+
+    <div class="container-fluid mt-4">
+        <div class="row">
+            <div class="col-12">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2>
+                        <i class="fas fa-warehouse me-2"></i>Inventory Reports
+                    </h2>
+                    <a href="/dashboard" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Inventory Summary -->
+        <div class="row mb-4">
+            <div class="col-md-4">
+                <div class="card stat-card primary">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h5 class="card-title">Total Stock</h5>
+                                <h2 class="text-white" th:text="${inventorySummary.totalStock}">0</h2>
+                                <p class="mb-0">Units in inventory</p>
+                            </div>
+                            <div class="stat-icon">
+                                <i class="fas fa-boxes"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card stat-card success">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h5 class="card-title">Total Products</h5>
+                                <h2 class="text-white" th:text="${inventorySummary.totalProducts}">0</h2>
+                                <p class="mb-0">Product types</p>
+                            </div>
+                            <div class="stat-icon">
+                                <i class="fas fa-box"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card stat-card warning">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h5 class="card-title">Low Stock Items</h5>
+                                <h2 class="text-white" th:text="${inventorySummary.lowStockCount}">0</h2>
+                                <p class="mb-0">Need attention</p>
+                            </div>
+                            <div class="stat-icon">
+                                <i class="fas fa-exclamation-triangle"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Out of Stock Alert -->
+        <div th:if="${inventorySummary.outOfStockCount > 0}" class="card mb-4 border-danger">
+            <div class="card-header bg-danger text-white">
+                <i class="fas fa-exclamation-circle me-2"></i>Out of Stock Alert
+            </div>
+            <div class="card-body">
+                <p class="mb-0">
+                    <strong th:text="${inventorySummary.outOfStockCount} + ' products'">0 products</strong> are currently out of stock.
+                    <a href="/inventory/out-of-stock" class="btn btn-sm btn-danger ms-2">View Details</a>
+                </p>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <i class="fas fa-tasks me-2"></i>Quick Actions
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-3 mb-3">
+                                <a href="/inventory" class="btn btn-primary w-100">
+                                    <i class="fas fa-list me-2"></i>View All Inventory
+                                </a>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <a href="/inventory/low-stock" class="btn btn-warning w-100">
+                                    <i class="fas fa-exclamation-triangle me-2"></i>Low Stock
+                                </a>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <a href="/inventory/out-of-stock" class="btn btn-danger w-100">
+                                    <i class="fas fa-times-circle me-2"></i>Out of Stock
+                                </a>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <a href="/inventory/transactions" class="btn btn-info w-100">
+                                    <i class="fas fa-history me-2"></i>Stock History
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div th:replace="~{layout/header :: scripts}"></div>
+</body>
+</html>

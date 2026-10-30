@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{layout/header :: head}">
+    <title>Create Bill - Retail Management System</title>
+</head>
+<body>
+    <div th:replace="~{layout/header :: navbar}"></div>
+
+    <div class="container-fluid mt-4">
+        <div class="row">
+            <div class="col-12">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2>
+                        <i class="fas fa-cash-register me-2"></i>Create New Bill
+                    </h2>
+                    <a href="/dashboard" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Alert Messages -->
+        <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+            <span th:text="${success}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+
+        <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <span th:text="${error}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+
+        <!-- Billing Form -->
+        <form th:action="@{/billing/create}" method="post" id="billingForm">
+            <div class="row">
+                <div class="col-md-8">
+                    <!-- Customer Selection -->
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <i class="fas fa-user me-2"></i>Customer Information
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="customerId" class="form-label">Customer</label>
+                                    <select class="form-select" id="customerId" name="customerId">
+                                        <option value="">Walk-in Customer</option>
+                                        <option th:each="customer : ${customers}" 
+                                                th:value="${customer.id}" 
+                                                th:text="${customer.name + ' (' + customer.customerCode + ')'}">Customer</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="paymentMethod" class="form-label">Payment Method</label>
+                                    <select class="form-select" id="paymentMethod" name="paymentMethod">
+                                        <option value="CASH">Cash</option>
+                                        <option value="CARD">Card</option>
+                                        <option value="UPI">UPI</option>
+                                        <option value="BANK_TRANSFER">Bank Transfer</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Product Selection -->
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <i class="fas fa-box me-2"></i>Add Products
+                        </div>
+                        <div class="card-body">
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label for="productSelect" class="form-label">Select Product</label>
+                                    <select class="form-select" id="productSelect">
+                                        <option value="">Select a product...</option>
+                                        <option th:each="product : ${products}" 
+                                                th:value="${product.id}"
+                                                th:data-code="${product.productCode}"
+                                                th:data-name="${product.name}"
+                                                th:data-price="${product.sellingPrice}"
+                                                th:data-stock="${product.stockQuantity}"
+                                                th:text="${product.name + ' - $' + product.sellingPrice + ' (Stock: ' + product.stockQuantity + ')'}">Product</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label for="quantity" class="form-label">Quantity</label>
+                                    <input type="number" class="form-control" id="quantity" min="1" value="1">
+                                </div>
+                                <div class="col-md-3 d-flex align-items-end">
+                                    <button type="button" class="btn btn-primary w-100" onclick="addProduct()">
+                                        <i class="fas fa-plus me-2"></i>Add
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Bill Items Table -->
+                            <div class="table-responsive">
+                                <table class="table table-bordered" id="billItemsTable">
+                                    <thead>
+                                        <tr>
+                                            <th>Product</th>
+                                            <th>Price</th>
+                                            <th>Quantity</th>
+                                            <th>Total</th>
+                                            <th>Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="billItemsBody">
+                                        <!-- Items will be added here dynamically -->
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div id="noItemsMessage" class="text-center text-muted py-3">
+                                No items added to bill
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <!-- Bill Summary -->
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <i class="fas fa-calculator me-2"></i>Bill Summary
+                        </div>
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Subtotal:</span>
+                                <span id="subtotal">$0.00</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Tax (%):</span>
+                                <input type="number" class="form-control form-control-sm" id="taxPercent" value="0" min="0" max="100" style="width: 80px;" onchange="calculateTotal()">
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Tax Amount:</span>
+                                <span id="taxAmount">$0.00</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Discount ($):</span>
+                                <input type="number" class="form-control form-control-sm" id="discountAmount" value="0" min="0" style="width: 80px;" onchange="calculateTotal()">
+                            </div>
+                            <hr>
+                            <div class="d-flex justify-content-between mb-2">
+                                <strong>Total:</strong>
+                                <strong id="totalAmount" class="text-primary">$0.00</strong>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Notes -->
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <i class="fas fa-sticky-note me-2"></i>Notes
+                        </div>
+                        <div class="card-body">
+                            <textarea class="form-control" name="notes" rows="3" placeholder="Add any notes..."></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <button type="submit" class="btn btn-success w-100 btn-lg" onclick="return validateForm()">
+                        <i class="fas fa-check me-2"></i>Complete Sale
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <div th:replace="~{layout/header :: scripts}"></div>
+    <script>
+        let billItems = [];
+        let itemCounter = 0;
+
+        function addProduct() {
+            const productSelect = document.getElementById('productSelect');
+            const quantity = parseInt(document.getElementById('quantity').value);
+
+            if (!productSelect.value || quantity <= 0) {
+                alert('Please select a product and enter a valid quantity');
+                return;
+            }
+
+            const productId = productSelect.value;
+            const productName = productSelect.options[productSelect.selectedIndex].dataset.name;
+            const productPrice = parseFloat(productSelect.options[productSelect.selectedIndex].dataset.price);
+            const productStock = parseInt(productSelect.options[productSelect.selectedIndex].dataset.stock);
+
+            if (quantity > productStock) {
+                alert('Insufficient stock. Available: ' + productStock);
+                return;
+            }
+
+            // Check if product already exists in bill
+            const existingItem = billItems.find(item => item.productId === productId);
+            if (existingItem) {
+                if (existingItem.quantity + quantity > productStock) {
+                    alert('Insufficient stock. Available: ' + productStock);
+                    return;
+                }
+                existingItem.quantity += quantity;
+                existingItem.total = existingItem.quantity * existingItem.price;
+            } else {
+                billItems.push({
+                    id: itemCounter++,
+                    productId: productId,
+                    name: productName,
+                    price: productPrice,
+                    quantity: quantity,
+                    total: quantity * productPrice
+                });
+            }
+
+            renderBillItems();
+            calculateTotal();
+            
+            // Reset selection
+            productSelect.value = '';
+            document.getElementById('quantity').value = 1;
+        }
+
+        function removeItem(itemId) {
+            billItems = billItems.filter(item => item.id !== itemId);
+            renderBillItems();
+            calculateTotal();
+        }
+
+        function renderBillItems() {
+            const tbody = document.getElementById('billItemsBody');
+            const noItemsMessage = document.getElementById('noItemsMessage');
+
+            if (billItems.length === 0) {
+                tbody.innerHTML = '';
+                noItemsMessage.style.display = 'block';
+                return;
+            }
+
+            noItemsMessage.style.display = 'none';
+            tbody.innerHTML = billItems.map(item => `
+                <tr>
+                    <td>
+                        <input type="hidden" name="productIds" value="${item.productId}">
+                        <input type="hidden" name="quantities" value="${item.quantity}">
+                        ${item.name}
+                    </td>
+                    <td>$${item.price.toFixed(2)}</td>
+                    <td>${item.quantity}</td>
+                    <td>$${item.total.toFixed(2)}</td>
+                    <td>
+                        <button type="button" class="btn btn-sm btn-danger" onclick="removeItem(${item.id})">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function calculateTotal() {
+            const subtotal = billItems.reduce((sum, item) => sum + item.total, 0);
+            const taxPercent = parseFloat(document.getElementById('taxPercent').value) || 0;
+            const discountAmount = parseFloat(document.getElementById('discountAmount').value) || 0;
+            
+            const taxAmount = subtotal * (taxPercent / 100);
+            const total = subtotal + taxAmount - discountAmount;
+
+            document.getElementById('subtotal').textContent = '$' + subtotal.toFixed(2);
+            document.getElementById('taxAmount').textContent = '$' + taxAmount.toFixed(2);
+            document.getElementById('totalAmount').textContent = '$' + total.toFixed(2);
+        }
+
+        function validateForm() {
+            if (billItems.length === 0) {
+                alert('Please add at least one product to the bill');
+                return false;
+            }
+            return true;
+        }
+    </script>
+</body>
+</html>
