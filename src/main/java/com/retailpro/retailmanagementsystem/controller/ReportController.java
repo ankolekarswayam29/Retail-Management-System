@@ -18,6 +18,7 @@ import java.util.Map;
  * Handles reports and analytics
  */
 @Controller
+@org.springframework.security.access.prepost.PreAuthorize("hasRole('ADMIN')")
 public class ReportController {
 
     @Autowired

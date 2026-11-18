@@ -15,6 +15,7 @@ import java.util.List;
  * Handles CRUD operations for suppliers
  */
 @Controller
+@org.springframework.security.access.prepost.PreAuthorize("hasRole('ADMIN')")
 public class SupplierController {
 
     @Autowired

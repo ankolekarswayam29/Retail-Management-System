@@ -38,6 +38,14 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     List<Product> findByCategoryId(Long categoryId);
 
     /**
+     * Find products by category name
+     * @param categoryName The category name
+     * @return List of products in the category
+     */
+    @Query("SELECT p FROM Product p WHERE p.category.name = :categoryName")
+    List<Product> findByCategoryName(@Param("categoryName") String categoryName);
+
+    /**
      * Find products by supplier
      * @param supplierId The supplier ID
      * @return List of products from the supplier

@@ -79,6 +79,13 @@ public interface SaleRepository extends JpaRepository<Sale, Long> {
     Double calculateTodayRevenue();
 
     /**
+     * Calculate all-time revenue
+     * @return All-time total revenue
+     */
+    @Query("SELECT COALESCE(SUM(s.totalAmount), 0) FROM Sale s")
+    Double calculateAllTimeRevenue();
+
+    /**
      * Get recent sales (last N sales)
      * @param limit The number of recent sales to retrieve
      * @return List of recent sales

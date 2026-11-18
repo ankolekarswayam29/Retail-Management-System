@@ -94,8 +94,7 @@
     <div th:replace="~{layout/header :: scripts}"></div>
     <script th:inline="javascript">
         const ctx = document.getElementById('monthlySalesChart').getContext('2d');
-        const monthlySales = /*[[${chartData.monthlySales}]]*/ {};
-        
+        const monthlySales = /*[[${reportData.chartData.monthlySales}]]*/ {};
         const labels = Object.keys(monthlySales).map(month => {
             const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
             return monthNames[parseInt(month) - 1];

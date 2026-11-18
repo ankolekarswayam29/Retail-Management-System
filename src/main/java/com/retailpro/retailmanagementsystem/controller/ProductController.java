@@ -51,6 +51,7 @@ public class ProductController {
     /**
      * Display product creation form
      */
+    @org.springframework.security.access.prepost.PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/products/new")
     public String showCreateForm(Model model) {
         Product product = new Product();
@@ -66,6 +67,7 @@ public class ProductController {
     /**
      * Display product edit form
      */
+    @org.springframework.security.access.prepost.PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/products/edit/{id}")
     public String showEditForm(@PathVariable Long id, Model model) {
         Product product = productService.getProductById(id)
@@ -83,6 +85,7 @@ public class ProductController {
     /**
      * Save product (create or update)
      */
+    @org.springframework.security.access.prepost.PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/products/save")
     public String saveProduct(@ModelAttribute Product product, RedirectAttributes redirectAttributes) {
         try {
@@ -103,6 +106,7 @@ public class ProductController {
     /**
      * Delete product
      */
+    @org.springframework.security.access.prepost.PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/products/delete/{id}")
     public String deleteProduct(@PathVariable Long id, RedirectAttributes redirectAttributes) {
         try {

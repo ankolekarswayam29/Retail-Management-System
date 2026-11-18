@@ -32,6 +32,9 @@ public class BillingController {
     @Autowired
     private CustomerService customerService;
 
+    @Autowired
+    private com.retailpro.retailmanagementsystem.repository.UserRepository userRepository;
+
     /**
      * Display billing page
      */
@@ -56,6 +59,7 @@ public class BillingController {
                              @RequestParam(required = false) Long customerId,
                              @RequestParam(required = false) String[] productIds,
                              @RequestParam(required = false) String[] quantities,
+                             org.springframework.security.core.Authentication authentication,
                              RedirectAttributes redirectAttributes) {
         try {
             // Set customer if provided
@@ -63,6 +67,14 @@ public class BillingController {
                 Customer customer = customerService.getCustomerById(customerId)
                         .orElseThrow(() -> new RuntimeException("Customer not found"));
                 sale.setCustomer(customer);
+            }
+
+            // Set current cashier / employee user
+            Long userId = null;
+            if (authentication != null && authentication.isAuthenticated()) {
+                userId = userRepository.findByUsername(authentication.getName())
+                        .map(com.retailpro.retailmanagementsystem.entity.User::getId)
+                        .orElse(null);
             }
 
             // Create sale items
@@ -94,7 +106,7 @@ public class BillingController {
             }
 
             // Create sale
-            Sale createdSale = billingService.createSale(sale, saleItems, null);
+            Sale createdSale = billingService.createSale(sale, saleItems, userId);
             
             redirectAttributes.addFlashAttribute("success", "Bill created successfully");
             return "redirect:/billing/invoice/" + createdSale.getId();

@@ -1,0 +1,33 @@
+
+# Maven build files
+target/
+
+# IntelliJ IDEA
+.idea/
+*.iml
+
+# VS Code
+.vscode/
+
+# Java compiled files
+*.class
+
+# Logs
+*.log
+
+# Environment secrets
+.env
+.env.*
+application-local.properties
+
+# OS files
+.DS_Store
+Thumbs.db
+# IntelliJ backup files
+.idea*
+*.zip
+
+# Duplicate backup documents
+*- Copy.md
+JAVA PROJECT.docx
+ARCHITECTURE - Copy.md

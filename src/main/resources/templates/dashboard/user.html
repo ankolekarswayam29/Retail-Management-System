@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" data-theme="dark">
+<head th:replace="~{layout/header :: head}">
+    <title>Employee Workstation - RetailPro User Dashboard</title>
+</head>
+<body>
+
+<div class="app-wrapper">
+    <!-- Collapsible Sidebar -->
+    <div th:replace="~{layout/sidebar :: sidebar}"></div>
+    <div id="sidebarOverlay" class="sidebar-overlay"></div>
+
+    <div class="app-main">
+        <!-- Top Navigation Header -->
+        <div th:replace="~{layout/header :: topbar}"></div>
+
+        <!-- Main Dashboard Content -->
+        <main class="app-content">
+
+            <!-- Flash Notifications -->
+            <div th:if="${success}" class="alert alert-success alert-dismissible fade show mb-4" role="alert">
+                <i class="fas fa-check-circle me-2"></i>
+                <span th:text="${success}"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            <div th:if="${error}" class="alert alert-danger alert-dismissible fade show mb-4" role="alert">
+                <i class="fas fa-exclamation-circle me-2"></i>
+                <span th:text="${error}"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+
+            <!-- Employee Welcome & Quick Action Header -->
+            <div class="page-header-wrapper">
+                <div>
+                    <div class="d-flex align-items-center gap-2 mb-1">
+                        <span class="badge bg-emerald" style="font-size: 11px; letter-spacing: 0.5px;">ACTIVE WORKSTATION</span>
+                        <span class="text-muted small" th:text="${#temporals.format(#temporals.createNow(), 'EEEE, MMMM dd, yyyy')}">Monday, Nov 17</span>
+                    </div>
+                    <h1 class="page-title">Welcome back, <span class="accent-emerald" th:text="${employeeName}">Staff Member</span></h1>
+                    <p class="page-subtitle">Retail point of sale terminal, product availability & operational activity</p>
+                </div>
+
+                <div class="d-flex align-items-center gap-2 flex-wrap">
+                    <!-- Live sync badge -->
+                    <span class="badge bg-dark border border-secondary text-light px-3 py-2 d-none d-sm-inline-flex align-items-center">
+                        <span class="status-pulse-dot me-2"></span> <span id="userLiveSyncText">LIVE TERMINAL</span>
+                    </span>
+
+                    <!-- Quick Customer Shortcut -->
+                    <a th:href="@{/customers/new}" class="btn btn-outline-light btn-sm d-inline-flex align-items-center">
+                        <i class="fas fa-user-plus me-1 text-info"></i> New Customer
+                    </a>
+
+                    <!-- POS Shortcut Button -->
+                    <a th:href="@{/billing}" class="btn-topbar-action">
+                        <i class="fas fa-cash-register me-2"></i> Open POS Terminal
+                    </a>
+                </div>
+            </div>
+
+            <!-- ==========================================================================
+                 1. Employee KPI Cards Row (Real Database Aggregations)
+                 ========================================================================== -->
+            <div class="row g-4 mb-4">
+                <!-- KPI 1: Today's Orders -->
+                <div class="col-xl-3 col-md-6">
+                    <div class="kpi-card emerald">
+                        <div class="kpi-header">
+                            <span class="kpi-title">Today's Transactions</span>
+                            <div class="kpi-icon-wrap emerald">
+                                <i class="fas fa-receipt"></i>
+                            </div>
+                        </div>
+                        <div class="kpi-value" id="userKpiOrders" th:text="${userData.todaySalesCount}">0</div>
+                        <div class="kpi-footer">
+                            <span class="trend-pill positive"><i class="fas fa-bolt"></i> Live Today</span>
+                            <span>Sales completed</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- KPI 2: Today's Billing Total -->
+                <div class="col-xl-3 col-md-6">
+                    <div class="kpi-card purple">
+                        <div class="kpi-header">
+                            <span class="kpi-title">Today's Billing Total</span>
+                            <div class="kpi-icon-wrap purple">
+                                <i class="fas fa-cash-register"></i>
+                            </div>
+                        </div>
+                        <div class="kpi-value" id="userKpiRevenue" th:text="'$' + ${#numbers.formatDecimal(userData.todayRevenue ?: 0.0, 1, 'COMMA', 2, 'POINT')}">$0.00</div>
+                        <div class="kpi-footer">
+                            <span class="trend-pill neutral"><i class="fas fa-wallet"></i> Gross Volume</span>
+                            <span>Today's Receipts</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- KPI 3: Average Transaction Value -->
+                <div class="col-xl-3 col-md-6">
+                    <div class="kpi-card blue">
+                        <div class="kpi-header">
+                            <span class="kpi-title">Avg Order Value</span>
+                            <div class="kpi-icon-wrap blue">
+                                <i class="fas fa-calculator"></i>
+                            </div>
+                        </div>
+                        <div class="kpi-value" th:text="'$' + ${#numbers.formatDecimal(userData.todayAverageOrder ?: 0.0, 1, 'COMMA', 2, 'POINT')}">$0.00</div>
+                        <div class="kpi-footer">
+                            <span class="trend-pill neutral"><i class="fas fa-chart-line"></i> Performance</span>
+                            <span>Per checkout</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- KPI 4: Stock Safety Alerts -->
+                <div class="col-xl-3 col-md-6">
+                    <div class="kpi-card rose">
+                        <div class="kpi-header">
+                            <span class="kpi-title">Low Stock SKUs</span>
+                            <div class="kpi-icon-wrap rose">
+                                <i class="fas fa-exclamation-triangle"></i>
+                            </div>
+                        </div>
+                        <div class="kpi-value text-danger" id="userKpiLowStock" th:text="${userData.lowStockCount}">0</div>
+                        <div class="kpi-footer">
+                            <span th:if="${userData.lowStockCount > 0}" class="trend-pill danger"><i class="fas fa-bell"></i> Attention</span>
+                            <span th:if="${userData.lowStockCount == 0}" class="trend-pill positive"><i class="fas fa-check-shield"></i> All Stock Safe</span>
+                            <a th:href="@{/inventory/low-stock}" class="text-decoration-none text-muted ms-auto">Check</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ==========================================================================
+                 2. Core Operations Grid: Real-Time Product Catalog & Right Sidebar
+                 ========================================================================== -->
+            <div class="row g-4 mb-4">
+                <!-- Left Column: Fast Live Product Catalog Search & Availability -->
+                <div class="col-xl-8">
+                    <!-- Interactive Product Search Card -->
+                    <div class="premium-table-card mb-4">
+                        <div class="analytics-card-header flex-wrap gap-2">
+                            <div class="card-title-group">
+                                <i class="fas fa-boxes accent-emerald"></i>
+                                <div>
+                                    <h3 class="card-title-text">Live Product Stock & Price Directory</h3>
+                                    <span class="card-subtitle-text">Real-time inventory lookup for checkout and availability</span>
+                                </div>
+                            </div>
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="position-relative">
+                                    <input type="text" id="userProductSearchInput" class="form-control form-control-sm" 
+                                           style="background: rgba(255, 255, 255, 0.05); border-color: var(--border-color); color: var(--text-primary); width: 220px;"
+                                           placeholder="Filter by name or SKU..." onkeyup="filterUserCatalogTable()">
+                                </div>
+                                <a th:href="@{/products}" class="btn btn-sm btn-outline-light">Full Catalog</a>
+                            </div>
+                        </div>
+
+                        <div class="table-responsive" style="max-height: 380px;">
+                            <table class="table table-dark-premium" id="userCatalogTable">
+                                <thead>
+                                    <tr>
+                                        <th>Product / SKU</th>
+                                        <th>Category</th>
+                                        <th>Unit Price</th>
+                                        <th>Stock Level</th>
+                                        <th>Status</th>
+                                        <th class="text-end">POS Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr th:each="product : ${userData.catalogProducts}">
+                                        <td>
+                                            <div class="fw-bold product-name-cell" th:text="${product.name}">Product Name</div>
+                                            <small class="text-muted product-code-cell" th:text="${product.productCode}">SKU-100</small>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-secondary" th:text="${product.category != null ? product.category.name : 'General'}">Category</span>
+                                        </td>
+                                        <td>
+                                            <span class="fw-bold accent-emerald" th:text="'$' + ${#numbers.formatDecimal(product.sellingPrice, 1, 'COMMA', 2, 'POINT')}">$0.00</span>
+                                        </td>
+                                        <td>
+                                            <span th:class="${product.stockQuantity <= product.minimumStock ? 'fw-bold text-danger' : 'fw-bold'}" 
+                                                  th:text="${product.stockQuantity}">10</span>
+                                            <small class="text-muted">units</small>
+                                        </td>
+                                        <td>
+                                            <span th:if="${product.stockQuantity == 0}" class="pill-badge pill-danger">OUT OF STOCK</span>
+                                            <span th:if="${product.stockQuantity > 0 && product.stockQuantity <= product.minimumStock}" class="pill-badge pill-warning">LOW STOCK</span>
+                                            <span th:if="${product.stockQuantity > product.minimumStock}" class="pill-badge pill-cash">IN STOCK</span>
+                                        </td>
+                                        <td class="text-end">
+                                            <a th:href="@{/billing(productId=${product.id})}" class="btn btn-sm btn-outline-success">
+                                                <i class="fas fa-cart-plus me-1"></i> Bill
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    <tr th:if="${userData.catalogProducts == null || userData.catalogProducts.empty}">
+                                        <td colspan="6" class="text-center py-4 text-muted">
+                                            No active catalog products found in database.
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Recent Transactions Ledger -->
+                    <div class="premium-table-card">
+                        <div class="analytics-card-header">
+                            <div class="card-title-group">
+                                <i class="fas fa-history accent-purple"></i>
+                                <div>
+                                    <h3 class="card-title-text">Today's Transactions Ledger</h3>
+                                    <span class="card-subtitle-text">Invoices generated during current business sessions</span>
+                                </div>
+                            </div>
+                            <a th:href="@{/sales}" class="btn btn-sm btn-outline-light">All Sales</a>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-dark-premium">
+                                <thead>
+                                    <tr>
+                                        <th>Invoice #</th>
+                                        <th>Customer</th>
+                                        <th>Time</th>
+                                        <th>Payment</th>
+                                        <th>Amount</th>
+                                        <th class="text-end">Receipt</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr th:each="sale : ${userData.recentSales}">
+                                        <td>
+                                            <span class="fw-bold accent-emerald" th:text="${sale.invoiceNumber}">INV-1001</span>
+                                        </td>
+                                        <td>
+                                            <span th:text="${sale.customer != null ? sale.customer.name : 'Walk-in Customer'}">Walk-in</span>
+                                        </td>
+                                        <td>
+                                            <small class="text-muted" th:text="${#temporals.format(sale.saleDate, 'HH:mm')}">14:30</small>
+                                        </td>
+                                        <td>
+                                            <span th:if="${sale.paymentMethod == 'CASH'}" class="pill-badge pill-cash">CASH</span>
+                                            <span th:if="${sale.paymentMethod == 'CARD'}" class="pill-badge pill-card">CARD</span>
+                                            <span th:if="${sale.paymentMethod == 'UPI'}" class="pill-badge pill-upi">UPI</span>
+                                            <span th:if="${sale.paymentMethod != 'CASH' && sale.paymentMethod != 'CARD' && sale.paymentMethod != 'UPI'}" 
+                                                  class="pill-badge pill-cash" th:text="${sale.paymentMethod}">OTHER</span>
+                                        </td>
+                                        <td>
+                                            <span class="fw-bold" th:text="'$' + ${#numbers.formatDecimal(sale.totalAmount, 1, 'COMMA', 2, 'POINT')}">$0.00</span>
+                                        </td>
+                                        <td class="text-end">
+                                            <a th:href="@{/billing/invoice/{id}(id=${sale.id})}" class="btn btn-sm btn-outline-light" title="Print/View Invoice">
+                                                <i class="fas fa-print"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    <tr th:if="${userData.recentSales == null || userData.recentSales.empty}">
+                                        <td colspan="6" class="text-center py-4 text-muted">
+                                            No sales recorded yet. Click <a th:href="@{/billing}" class="text-success">Point of Sale</a> to start.
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column: Frequently Sold, Low Stock Alerts, Employee Security -->
+                <div class="col-xl-4">
+                    <!-- Frequently Sold Products Card -->
+                    <div class="analytics-card mb-4">
+                        <div class="analytics-card-header">
+                            <div class="card-title-group">
+                                <i class="fas fa-fire accent-amber"></i>
+                                <div>
+                                    <h3 class="card-title-text">Frequently Sold Products</h3>
+                                    <span class="card-subtitle-text">Fastest moving inventory items</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="analytics-card-body p-0">
+                            <div class="list-group list-group-flush" style="background: transparent;">
+                                <div th:each="item, iterStat : ${userData.topProducts}" 
+                                     class="list-group-item d-flex align-items-center justify-content-between px-4 py-3"
+                                     style="background: transparent; border-color: rgba(255, 255, 255, 0.05); color: var(--text-primary);">
+                                    <div class="d-flex align-items-center gap-3">
+                                        <div class="d-flex align-items-center justify-content-center rounded-circle"
+                                             style="width: 32px; height: 32px; background: rgba(16, 185, 129, 0.15); color: var(--emerald-accent); font-weight: 700; font-size: 13px;"
+                                             th:text="${iterStat.count}">1</div>
+                                        <div>
+                                            <div class="fw-bold" style="font-size: 13.5px;" th:text="${item.name}">Product</div>
+                                            <small class="text-muted"><span th:text="${item.quantity}">0</span> units sold</small>
+                                        </div>
+                                    </div>
+                                    <span class="fw-bold accent-emerald" th:text="'$' + ${#numbers.formatDecimal(item.revenue ?: 0.0, 1, 'COMMA', 2, 'POINT')}">$0.00</span>
+                                </div>
+                                <div th:if="${userData.topProducts == null || userData.topProducts.empty}" class="p-4 text-center text-muted">
+                                    No item sales recorded yet.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Low Stock Alerts Card -->
+                    <div class="analytics-card mb-4" th:if="${userData.lowStockProducts != null && !userData.lowStockProducts.empty}">
+                        <div class="analytics-card-header">
+                            <div class="card-title-group">
+                                <i class="fas fa-exclamation-circle text-danger"></i>
+                                <div>
+                                    <h3 class="card-title-text">Low Stock Warning</h3>
+                                    <span class="card-subtitle-text">Inform supervisor for restocking</span>
+                                </div>
+                            </div>
+                            <span class="badge bg-danger" th:text="${userData.lowStockCount} + ' Critical'">Alert</span>
+                        </div>
+                        <div class="analytics-card-body p-0">
+                            <div class="list-group list-group-flush" style="background: transparent;">
+                                <div th:each="p : ${userData.lowStockProducts}" 
+                                     class="list-group-item d-flex align-items-center justify-content-between px-4 py-3"
+                                     style="background: transparent; border-color: rgba(255, 255, 255, 0.05); color: var(--text-primary);">
+                                    <div>
+                                        <div class="fw-bold text-light" style="font-size: 13px;" th:text="${p.name}">Product</div>
+                                        <small class="text-muted" th:text="${p.productCode}">SKU-001</small>
+                                    </div>
+                                    <div class="text-end">
+                                        <span class="badge bg-rose" th:text="${p.stockQuantity} + ' left'">0 left</span>
+                                        <div class="text-muted" style="font-size: 11px;" th:text="'Min: ' + ${p.minimumStock}">Min: 5</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Employee Profile & Security Card -->
+                    <div class="analytics-card">
+                        <div class="analytics-card-header">
+                            <div class="card-title-group">
+                                <i class="fas fa-user-shield accent-purple"></i>
+                                <div>
+                                    <h3 class="card-title-text">My Profile & Security</h3>
+                                    <span class="card-subtitle-text">Authorized employee session information</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="analytics-card-body">
+                            <div class="d-flex align-items-center gap-3 mb-3 p-3 rounded-3" 
+                                 style="background: var(--bg-surface-elevated); border: 1px solid var(--border-color);">
+                                <div class="user-avatar-small" style="width: 44px; height: 44px; font-size: 18px;">
+                                    <span th:text="${#strings.substring(username ?: 'U', 0, 1).toUpperCase()}">U</span>
+                                </div>
+                                <div>
+                                    <div class="fw-bold" th:text="${employeeName}">Staff Member</div>
+                                    <small class="text-muted" th:text="'@' + ${username}">@user</small>
+                                </div>
+                                <span class="badge bg-purple ms-auto" th:text="${role}">USER</span>
+                            </div>
+
+                            <div class="mb-3">
+                                <small class="text-muted d-block">Registered Email</small>
+                                <span class="text-light" style="font-size: 13.5px;" th:text="${user != null ? user.email : 'Not configured'}">email@retailpro.com</span>
+                            </div>
+
+                            <div class="mb-3">
+                                <small class="text-muted d-block">Last Login Session</small>
+                                <span class="text-light" style="font-size: 13.5px;" 
+                                      th:text="${user != null && user.lastLoginAt != null ? #temporals.format(user.lastLoginAt, 'MMM dd, yyyy HH:mm:ss') : 'Current Session'}">Just now</span>
+                            </div>
+
+                            <div class="d-grid gap-2 mt-4">
+                                <a th:href="@{/change-password}" class="btn btn-outline-warning btn-sm d-flex align-items-center justify-content-center gap-2">
+                                    <i class="fas fa-key"></i> Change My Password
+                                </a>
+                                <a th:href="@{/logout}" class="btn btn-outline-danger btn-sm d-flex align-items-center justify-content-center gap-2">
+                                    <i class="fas fa-sign-out-alt"></i> Sign Out Workstation
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+</div>
+
+<!-- Layout Scripts -->
+<div th:replace="~{layout/header :: scripts}"></div>
+
+<!-- User Dashboard Interactive Filter and Polling Script -->
+<script>
+    function filterUserCatalogTable() {
+        const query = document.getElementById('userProductSearchInput').value.toLowerCase();
+        const rows = document.querySelectorAll('#userCatalogTable tbody tr');
+        rows.forEach(row => {
+            const nameEl = row.querySelector('.product-name-cell');
+            const codeEl = row.querySelector('.product-code-cell');
+            if (!nameEl || !codeEl) return;
+            const text = (nameEl.innerText + ' ' + codeEl.innerText).toLowerCase();
+            if (text.includes(query)) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        });
+    }
+
+    // Auto-polling for real-time live metrics
+    (function() {
+        function pollUserDashboard() {
+            fetch('/api/dashboard/live-stats')
+                .then(res => res.json())
+                .then(data => {
+                    if (data.todaySalesCount !== undefined) {
+                        const ordEl = document.getElementById('userKpiOrders');
+                        if (ordEl) ordEl.innerText = data.todaySalesCount;
+                    }
+                    if (data.todayRevenue !== undefined) {
+                        const revEl = document.getElementById('userKpiRevenue');
+                        if (revEl) revEl.innerText = '$' + Number(data.todayRevenue).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+                    }
+                    if (data.lowStockCount !== undefined) {
+                        const lowEl = document.getElementById('userKpiLowStock');
+                        if (lowEl) lowEl.innerText = data.lowStockCount;
+                    }
+                    if (data.timestamp) {
+                        const syncText = document.getElementById('userLiveSyncText');
+                        if (syncText) syncText.innerText = 'SYNC ' + data.timestamp;
+                    }
+                })
+                .catch(err => console.debug('Live background poll:', err));
+        }
+        setInterval(pollUserDashboard, 15000);
+    })();
+</script>
+
+</body>
+</html>

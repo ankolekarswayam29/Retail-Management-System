@@ -38,6 +38,9 @@ public class BillingService {
     @Autowired
     private CustomerService customerService;
 
+    @Autowired
+    private UserRepository userRepository;
+
     /**
      * Create a new sale/bill
      */
@@ -72,6 +75,9 @@ public class BillingService {
         BigDecimal totalAmount = subtotal.add(taxAmount).subtract(discountAmount);
 
         // Set sale details
+        if (userId != null && sale.getUser() == null) {
+            userRepository.findById(userId).ifPresent(sale::setUser);
+        }
         sale.setSubtotal(subtotal);
         sale.setTaxAmount(taxAmount);
         sale.setDiscountAmount(discountAmount);

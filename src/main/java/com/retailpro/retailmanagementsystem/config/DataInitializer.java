@@ -1,40 +1,34 @@
 package com.retailpro.retailmanagementsystem.config;
 
-import com.retailpro.retailmanagementsystem.service.UserService;
+import com.retailpro.retailmanagementsystem.security.AdminBootstrapService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
 /**
  * Data Initializer
- * Initializes default data (roles and admin user) when the application starts
+ * Initializes system roles and executes secure bootstrap if required.
+ * Preserves all existing database records and prevents password resets.
  */
 @Component
 public class DataInitializer implements CommandLineRunner {
 
+    private static final Logger log = LoggerFactory.getLogger(DataInitializer.class);
+
     @Autowired
-    private UserService userService;
+    private AdminBootstrapService adminBootstrapService;
 
     @Override
     public void run(String... args) throws Exception {
-        System.out.println("=================================================");
-        System.out.println("Initializing Default Data...");
-        System.out.println("=================================================");
+        log.info("=================================================");
+        log.info("RetailPro Enterprise Platform Startup Verification");
+        log.info("=================================================");
 
-        // Initialize default roles
-        userService.initializeDefaultRoles();
-        System.out.println("✓ Default roles initialized (ADMIN, STAFF)");
+        adminBootstrapService.initializeSystem();
 
-        // Initialize default admin user
-        userService.initializeDefaultAdmin();
-        System.out.println("✓ Default admin user initialized");
-
-        System.out.println("=================================================");
-        System.out.println("Default Credentials:");
-        System.out.println("Username: admin");
-        System.out.println("Password: admin123");
-        System.out.println("=================================================");
-        System.out.println("⚠️  Please change the default password after first login!");
-        System.out.println("=================================================");
+        log.info("✓ System verification and role initialization complete.");
+        log.info("=================================================");
     }
 }

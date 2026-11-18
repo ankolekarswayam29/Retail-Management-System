@@ -1,7 +1,11 @@
 package com.retailpro.retailmanagementsystem.service;
 
+import com.retailpro.retailmanagementsystem.entity.Category;
 import com.retailpro.retailmanagementsystem.entity.Product;
+import com.retailpro.retailmanagementsystem.entity.Supplier;
+import com.retailpro.retailmanagementsystem.repository.CategoryRepository;
 import com.retailpro.retailmanagementsystem.repository.ProductRepository;
+import com.retailpro.retailmanagementsystem.repository.SupplierRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,6 +23,12 @@ public class ProductService {
 
     @Autowired
     private ProductRepository productRepository;
+
+    @Autowired
+    private CategoryRepository categoryRepository;
+
+    @Autowired
+    private SupplierRepository supplierRepository;
 
     /**
      * Get all products
@@ -87,11 +97,26 @@ public class ProductService {
 
     /**
      * Create new product
+     * Fetches Category and Supplier from database to prevent TransientPropertyValueException
      */
     public Product createProduct(Product product) {
         // Check if product code already exists
         if (productRepository.existsByProductCode(product.getProductCode())) {
             throw new RuntimeException("Product code already exists");
+        }
+
+        // Fetch Category from database if provided
+        if (product.getCategory() != null && product.getCategory().getId() != null) {
+            Category category = categoryRepository.findById(product.getCategory().getId())
+                    .orElseThrow(() -> new RuntimeException("Category not found"));
+            product.setCategory(category);
+        }
+
+        // Fetch Supplier from database if provided
+        if (product.getSupplier() != null && product.getSupplier().getId() != null) {
+            Supplier supplier = supplierRepository.findById(product.getSupplier().getId())
+                    .orElseThrow(() -> new RuntimeException("Supplier not found"));
+            product.setSupplier(supplier);
         }
 
         // Set default values
@@ -113,6 +138,7 @@ public class ProductService {
 
     /**
      * Update product
+     * Fetches Category and Supplier from database to prevent TransientPropertyValueException
      */
     public Product updateProduct(Long id, Product productDetails) {
         Product product = productRepository.findById(id)
@@ -121,8 +147,21 @@ public class ProductService {
         // Update fields
         product.setName(productDetails.getName());
         product.setDescription(productDetails.getDescription());
-        product.setCategory(productDetails.getCategory());
-        product.setSupplier(productDetails.getSupplier());
+
+        // Fetch and update Category if provided
+        if (productDetails.getCategory() != null && productDetails.getCategory().getId() != null) {
+            Category category = categoryRepository.findById(productDetails.getCategory().getId())
+                    .orElseThrow(() -> new RuntimeException("Category not found"));
+            product.setCategory(category);
+        }
+
+        // Fetch and update Supplier if provided
+        if (productDetails.getSupplier() != null && productDetails.getSupplier().getId() != null) {
+            Supplier supplier = supplierRepository.findById(productDetails.getSupplier().getId())
+                    .orElseThrow(() -> new RuntimeException("Supplier not found"));
+            product.setSupplier(supplier);
+        }
+
         product.setPurchasePrice(productDetails.getPurchasePrice());
         product.setSellingPrice(productDetails.getSellingPrice());
         product.setMinimumStock(productDetails.getMinimumStock());

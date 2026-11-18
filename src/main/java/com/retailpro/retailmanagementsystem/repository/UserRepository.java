@@ -40,4 +40,23 @@ public interface UserRepository extends JpaRepository<User, Long> {
      * @return true if email exists, false otherwise
      */
     boolean existsByEmail(String email);
+
+    /**
+     * Count users by role name
+     */
+    long countByRoleName(String roleName);
+
+    /**
+     * Find users by role name
+     */
+    java.util.List<User> findByRoleName(String roleName);
+
+    /**
+     * Search users by keyword in full name, username, or email
+     */
+    @org.springframework.data.jpa.repository.Query("SELECT u FROM User u WHERE " +
+            "LOWER(u.fullName) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
+            "LOWER(u.username) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
+            "LOWER(u.email) LIKE LOWER(CONCAT('%', :search, '%'))")
+    java.util.List<User> searchUsers(@org.springframework.data.repository.query.Param("search") String search);
 }

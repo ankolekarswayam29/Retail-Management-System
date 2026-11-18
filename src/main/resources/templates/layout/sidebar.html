@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<body>
+
+<aside id="appSidebar" class="app-sidebar" th:fragment="sidebar">
+    <!-- Brand Header -->
+    <div class="sidebar-header">
+        <a th:href="@{/dashboard}" class="brand-link">
+            <div class="brand-logo-icon">
+                <i class="fas fa-chart-pie"></i>
+            </div>
+            <div class="brand-text-wrapper">
+                <span class="brand-title">Retail<span class="accent-emerald">Pro</span></span>
+                <span class="brand-badge">ENTERPRISE</span>
+            </div>
+        </a>
+        <button id="sidebarCollapseBtn" class="sidebar-toggle-btn d-none d-lg-flex" title="Toggle Sidebar">
+            <i class="fas fa-chevron-left"></i>
+        </button>
+    </div>
+
+    <!-- Navigation Menu -->
+    <div class="sidebar-content">
+        <div class="nav-section-title">CORE PLATFORM</div>
+        <ul class="nav-list">
+            <li class="nav-item">
+                <a th:href="@{/dashboard}" class="nav-link active">
+                    <span class="nav-icon"><i class="fas fa-tachometer-alt"></i></span>
+                    <span class="nav-label">Dashboard</span>
+                    <span class="nav-tag live-tag">LIVE</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a th:href="@{/billing}" class="nav-link highlight-emerald">
+                    <span class="nav-icon"><i class="fas fa-cash-register"></i></span>
+                    <span class="nav-label">Point of Sale</span>
+                    <span class="badge bg-emerald ms-auto">POS</span>
+                </a>
+            </li>
+        </ul>
+
+        <div class="nav-section-title">INVENTORY & CATALOG</div>
+        <ul class="nav-list">
+            <li class="nav-item">
+                <a th:href="@{/products}" class="nav-link">
+                    <span class="nav-icon"><i class="fas fa-box"></i></span>
+                    <span class="nav-label">Products</span>
+                </a>
+            </li>
+            <li class="nav-item" sec:authorize="hasRole('ADMIN')">
+                <a th:href="@{/categories}" class="nav-link">
+                    <span class="nav-icon"><i class="fas fa-tags"></i></span>
+                    <span class="nav-label">Categories</span>
+                    <span class="badge bg-purple ms-auto">ADMIN</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a th:href="@{/inventory}" class="nav-link">
+                    <span class="nav-icon"><i class="fas fa-warehouse"></i></span>
+                    <span class="nav-label">Inventory</span>
+                    <span th:if="${stats != null && stats.lowStockCount != null && stats.lowStockCount > 0}" 
+                          class="badge bg-rose ms-auto" th:text="${stats.lowStockCount}">0</span>
+                </a>
+            </li>
+        </ul>
+
+        <div class="nav-section-title">SALES & COMMERCE</div>
+        <ul class="nav-list">
+            <li class="nav-item">
+                <a th:href="@{/sales}" class="nav-link">
+                    <span class="nav-icon"><i class="fas fa-receipt"></i></span>
+                    <span class="nav-label">Sales Orders</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a th:href="@{/customers}" class="nav-link">
+                    <span class="nav-icon"><i class="fas fa-users"></i></span>
+                    <span class="nav-label">Customers</span>
+                </a>
+            </li>
+            <li class="nav-item" sec:authorize="hasRole('ADMIN')">
+                <a th:href="@{/suppliers}" class="nav-link">
+                    <span class="nav-icon"><i class="fas fa-truck"></i></span>
+                    <span class="nav-label">Suppliers</span>
+                    <span class="badge bg-purple ms-auto">ADMIN</span>
+                </a>
+            </li>
+        </ul>
+
+        <div class="nav-section-title" sec:authorize="hasRole('ADMIN')">INSIGHTS & ADMIN</div>
+        <ul class="nav-list" sec:authorize="hasRole('ADMIN')">
+            <li class="nav-item">
+                <a th:href="@{/reports/sales}" class="nav-link">
+                    <span class="nav-icon"><i class="fas fa-chart-line"></i></span>
+                    <span class="nav-label">Reports & Analytics</span>
+                </a>
+            </li>
+            <li class="nav-item" sec:authorize="hasRole('ADMIN')">
+                <a th:href="@{/users}" class="nav-link">
+                    <span class="nav-icon"><i class="fas fa-user-shield"></i></span>
+                    <span class="nav-label">User Management</span>
+                    <span class="badge bg-purple ms-auto">ADMIN</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="#settingsModal" data-bs-toggle="modal" class="nav-link">
+                    <span class="nav-icon"><i class="fas fa-sliders-h"></i></span>
+                    <span class="nav-label">Settings</span>
+                </a>
+            </li>
+        </ul>
+    </div>
+
+    <!-- Sidebar Footer / User Profile summary -->
+    <div class="sidebar-footer">
+        <div class="sidebar-user-card">
+            <div class="avatar-circle">
+                <span th:text="${#strings.substring(username ?: 'Admin', 0, 1).toUpperCase()}">A</span>
+            </div>
+            <div class="user-info">
+                <div class="user-name" th:text="${username ?: 'System User'}">Admin</div>
+                <div class="user-role-badge" th:text="${role ?: 'ADMIN'}">ADMIN</div>
+            </div>
+            <a th:href="@{/logout}" class="sidebar-logout-btn" title="Sign Out">
+                <i class="fas fa-power-off"></i>
+            </a>
+        </div>
+    </div>
+</aside>
+
+</body>
+</html>

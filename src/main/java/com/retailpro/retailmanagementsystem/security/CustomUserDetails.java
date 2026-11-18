@@ -62,7 +62,15 @@ public class CustomUserDetails implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return user.getActive();
+        return Boolean.TRUE.equals(user.getActive());
+    }
+
+    public boolean isMustChangePassword() {
+        return Boolean.TRUE.equals(user.getMustChangePassword());
+    }
+
+    public String getFullName() {
+        return user.getFullName();
     }
 
     public User getUser() {

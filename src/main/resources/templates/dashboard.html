@@ -1,238 +1,527 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" data-theme="dark">
 <head th:replace="~{layout/header :: head}">
-    <title>Dashboard - Retail Management System</title>
+    <title>Dashboard - RetailPro Enterprise Analytics</title>
 </head>
 <body>
-    <div th:replace="~{layout/header :: navbar}"></div>
 
-    <div class="container-fluid mt-4">
-        <div class="row">
-            <div class="col-12">
-                <h2 class="mb-4">
-                    <i class="fas fa-tachometer-alt me-2"></i>Dashboard
-                </h2>
-            </div>
-        </div>
+<div class="app-wrapper">
+    <!-- Collapsible Sidebar -->
+    <div th:replace="~{layout/sidebar :: sidebar}"></div>
+    <div id="sidebarOverlay" class="sidebar-overlay"></div>
 
-        <!-- Alert Messages -->
-        <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
-            <span th:text="${success}"></span>
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
+    <div class="app-main">
+        <!-- Top Navigation Header -->
+        <div th:replace="~{layout/header :: topbar}"></div>
 
-        <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
-            <span th:text="${error}"></span>
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
+        <!-- Main Dashboard Content -->
+        <main class="app-content">
 
-        <!-- Statistics Cards -->
-        <div class="row mb-4">
-            <div class="col-md-3">
-                <div class="stat-card primary">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <div class="stat-value" th:text="${stats.totalProducts}">0</div>
-                            <div class="stat-label">Total Products</div>
-                        </div>
-                        <div class="stat-icon">
-                            <i class="fas fa-box"></i>
-                        </div>
-                    </div>
-                </div>
+            <!-- Flash Notifications -->
+            <div th:if="${success}" class="alert alert-success alert-dismissible fade show mb-4" role="alert">
+                <i class="fas fa-check-circle me-2"></i>
+                <span th:text="${success}"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             </div>
-            <div class="col-md-3">
-                <div class="stat-card success">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <div class="stat-value" th:text="${stats.totalCustomers}">0</div>
-                            <div class="stat-label">Total Customers</div>
-                        </div>
-                        <div class="stat-icon">
-                            <i class="fas fa-users"></i>
-                        </div>
-                    </div>
-                </div>
+            <div th:if="${error}" class="alert alert-danger alert-dismissible fade show mb-4" role="alert">
+                <i class="fas fa-exclamation-circle me-2"></i>
+                <span th:text="${error}"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             </div>
-            <div class="col-md-3">
-                <div class="stat-card warning">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <div class="stat-value" th:text="${stats.totalSuppliers}">0</div>
-                            <div class="stat-label">Total Suppliers</div>
-                        </div>
-                        <div class="stat-icon">
-                            <i class="fas fa-truck"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="stat-card info">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <div class="stat-value" th:text="${stats.totalSales}">0</div>
-                            <div class="stat-label">Total Sales</div>
-                        </div>
-                        <div class="stat-icon">
-                            <i class="fas fa-shopping-cart"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
 
-        <!-- Revenue Cards -->
-        <div class="row mb-4">
-            <div class="col-md-6">
-                <div class="card dashboard-card">
-                    <div class="card-body">
-                        <h5 class="card-title">
-                            <i class="fas fa-calendar-day me-2"></i>Today's Revenue
-                        </h5>
-                        <h3 class="text-success" th:text="'$' + ${stats.todayRevenue}">$0.00</h3>
-                        <p class="text-muted mb-0">
-                            <span th:text="${stats.todaySalesCount} + ' sales today'">0 sales today</span>
-                        </p>
-                    </div>
+            <!-- Page Header: Title & Interactive Date Filters -->
+            <div class="page-header-wrapper">
+                <div>
+                    <h1 class="page-title">Executive Analytics</h1>
+                    <p class="page-subtitle">Real-time enterprise intelligence & retail transaction overview</p>
                 </div>
-            </div>
-            <div class="col-md-6">
-                <div class="card dashboard-card">
-                    <div class="card-body">
-                        <h5 class="card-title">
-                            <i class="fas fa-calendar-alt me-2"></i>Monthly Revenue
-                        </h5>
-                        <h3 class="text-primary" th:text="'$' + ${stats.monthlyRevenue}">$0.00</h3>
-                        <p class="text-muted mb-0">Current month</p>
+                <div class="d-flex align-items-center gap-3 flex-wrap">
+                    <!-- Date Filter Tabs -->
+                    <div class="date-filter-group" role="group" aria-label="Date Filters">
+                        <button type="button" class="date-filter-btn" data-period="today">Today</button>
+                        <button type="button" class="date-filter-btn" data-period="week">This Week</button>
+                        <button type="button" class="date-filter-btn active" data-period="month">This Month</button>
+                        <button type="button" class="date-filter-btn" data-period="year">This Year</button>
                     </div>
-                </div>
-            </div>
-        </div>
 
-        <!-- Low Stock Alert -->
-        <div th:if="${stats.lowStockCount > 0}" class="row mb-4">
-            <div class="col-12">
-                <div class="card border-warning">
-                    <div class="card-header bg-warning text-dark">
-                        <i class="fas fa-exclamation-triangle me-2"></i>Low Stock Alert
-                    </div>
-                    <div class="card-body">
-                        <p class="mb-0">
-                            <strong th:text="${stats.lowStockCount} + ' products'">0 products</strong> are running low on stock.
-                            <a href="/inventory/low-stock" class="btn btn-sm btn-warning ms-2">View Details</a>
-                        </p>
-                    </div>
+                    <!-- Quick POS Button -->
+                    <a th:href="@{/billing}" class="btn-topbar-action">
+                        <i class="fas fa-cash-register me-2"></i>Point of Sale
+                    </a>
                 </div>
             </div>
-        </div>
 
-        <!-- Charts and Recent Sales -->
-        <div class="row mb-4">
-            <div class="col-md-8">
-                <div class="card dashboard-card">
-                    <div class="card-header">
-                        <i class="fas fa-chart-line me-2"></i>Sales Chart
+            <!-- ==========================================================================
+                 1. Executive KPI Cards Row
+                 ========================================================================== -->
+            <div class="row g-4 mb-4">
+                <!-- KPI 1: Total Revenue -->
+                <div class="col-xl-2 col-md-4 col-sm-6">
+                    <div class="kpi-card emerald">
+                        <div class="kpi-header">
+                            <span class="kpi-title">Total Revenue</span>
+                            <div class="kpi-icon-wrap emerald">
+                                <i class="fas fa-dollar-sign"></i>
+                            </div>
+                        </div>
+                        <div class="kpi-value" th:text="'$' + ${#numbers.formatDecimal(stats.totalRevenue ?: 0.0, 1, 'COMMA', 2, 'POINT')}">$0.00</div>
+                        <div class="kpi-footer">
+                            <span class="trend-pill positive"><i class="fas fa-arrow-up"></i> Live</span>
+                            <span>All-time Gross</span>
+                        </div>
                     </div>
-                    <div class="card-body">
-                        <div class="chart-container">
-                            <canvas id="salesChart"></canvas>
+                </div>
+
+                <!-- KPI 2: Total Sales Orders -->
+                <div class="col-xl-2 col-md-4 col-sm-6">
+                    <div class="kpi-card purple">
+                        <div class="kpi-header">
+                            <span class="kpi-title">Total Orders</span>
+                            <div class="kpi-icon-wrap purple">
+                                <i class="fas fa-shopping-bag"></i>
+                            </div>
+                        </div>
+                        <div class="kpi-value" th:text="${#numbers.formatInteger(stats.totalSales ?: 0, 1, 'COMMA')}">0</div>
+                        <div class="kpi-footer">
+                            <span class="trend-pill neutral"><i class="fas fa-calendar-day"></i> <span th:text="${stats.todaySalesCount}">0</span> today</span>
+                            <span>Transactions</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- KPI 3: Total Products in Catalog -->
+                <div class="col-xl-2 col-md-4 col-sm-6">
+                    <div class="kpi-card blue">
+                        <div class="kpi-header">
+                            <span class="kpi-title">Catalog SKUs</span>
+                            <div class="kpi-icon-wrap blue">
+                                <i class="fas fa-boxes"></i>
+                            </div>
+                        </div>
+                        <div class="kpi-value" th:text="${stats.totalProducts ?: 0}">0</div>
+                        <div class="kpi-footer">
+                            <span class="trend-pill positive"><i class="fas fa-check"></i> Active</span>
+                            <span th:text="${inventorySummary != null ? inventorySummary.totalStock : 0} + ' units'">0 units</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- KPI 4: Total Customers -->
+                <div class="col-xl-2 col-md-4 col-sm-6">
+                    <div class="kpi-card amber">
+                        <div class="kpi-header">
+                            <span class="kpi-title">Registered Clients</span>
+                            <div class="kpi-icon-wrap amber">
+                                <i class="fas fa-user-friends"></i>
+                            </div>
+                        </div>
+                        <div class="kpi-value" th:text="${stats.totalCustomers ?: 0}">0</div>
+                        <div class="kpi-footer">
+                            <span class="trend-pill neutral"><i class="fas fa-users"></i> Directory</span>
+                            <span>Loyalty base</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- KPI 5: Estimated Gross Profit -->
+                <div class="col-xl-2 col-md-4 col-sm-6">
+                    <div class="kpi-card emerald">
+                        <div class="kpi-header">
+                            <span class="kpi-title">Gross Profit</span>
+                            <div class="kpi-icon-wrap emerald">
+                                <i class="fas fa-chart-pie"></i>
+                            </div>
+                        </div>
+                        <div class="kpi-value" th:text="'$' + ${#numbers.formatDecimal(stats.totalProfit ?: 0.0, 1, 'COMMA', 2, 'POINT')}">$0.00</div>
+                        <div class="kpi-footer">
+                            <span class="trend-pill positive"><i class="fas fa-percentage"></i> <span th:text="${stats.profitMargin ?: 0.0}">0</span>%</span>
+                            <span>Margin</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- KPI 6: Low Stock Warnings -->
+                <div class="col-xl-2 col-md-4 col-sm-6">
+                    <div class="kpi-card rose">
+                        <div class="kpi-header">
+                            <span class="kpi-title">Stock Alerts</span>
+                            <div class="kpi-icon-wrap rose">
+                                <i class="fas fa-exclamation-triangle"></i>
+                            </div>
+                        </div>
+                        <div class="kpi-value text-danger" th:text="${stats.lowStockCount ?: 0}">0</div>
+                        <div class="kpi-footer">
+                            <span th:if="${stats.lowStockCount > 0}" class="trend-pill danger"><i class="fas fa-bell"></i> Critical</span>
+                            <span th:if="${stats.lowStockCount == 0}" class="trend-pill positive"><i class="fas fa-shield-alt"></i> Optimal</span>
+                            <a th:href="@{/inventory/low-stock}" class="text-decoration-none text-muted ms-auto">Review</a>
                         </div>
                     </div>
                 </div>
             </div>
-            <div class="col-md-4">
-                <div class="card dashboard-card">
-                    <div class="card-header">
-                        <i class="fas fa-history me-2"></i>Recent Sales
-                    </div>
-                    <div class="card-body">
-                        <div th:if="${stats.recentSales != null && !stats.recentSales.empty}">
-                            <div th:each="sale : ${stats.recentSales}" class="mb-3 pb-3 border-bottom">
-                                <div class="d-flex justify-content-between">
-                                    <strong th:text="${sale.invoiceNumber}">INV-001</strong>
-                                    <span class="text-success" th:text="'$' + ${sale.totalAmount}">$0.00</span>
+
+            <!-- ==========================================================================
+                 2. Interactive Charts & Analytics Grid (6 Charts)
+                 ========================================================================== -->
+            <div class="row g-4 mb-4">
+                <!-- Chart 1: Monthly Revenue Line Chart -->
+                <div class="col-lg-8">
+                    <div class="analytics-card">
+                        <div class="analytics-card-header">
+                            <div class="card-title-group">
+                                <i class="fas fa-chart-line accent-emerald"></i>
+                                <div>
+                                    <h3 class="card-title-text">Revenue Trajectory</h3>
+                                    <span class="card-subtitle-text">Monthly cumulative gross revenue performance</span>
                                 </div>
-                                <small class="text-muted" th:text="${#temporals.format(sale.saleDate, 'MMM dd, HH:mm')}">Jan 01, 10:00</small>
+                            </div>
+                            <span class="badge bg-emerald">12-Month Curve</span>
+                        </div>
+                        <div class="analytics-card-body">
+                            <div class="chart-loading-overlay">
+                                <div class="loading-spinner-emerald"></div>
+                            </div>
+                            <div class="chart-wrapper">
+                                <canvas id="monthlyRevenueChart"></canvas>
                             </div>
                         </div>
-                        <div th:if="${stats.recentSales == null || stats.recentSales.empty}" class="text-center text-muted">
-                            <p class="mb-0">No recent sales</p>
+                    </div>
+                </div>
+
+                <!-- Chart 2: Daily Sales Bar Chart -->
+                <div class="col-lg-4">
+                    <div class="analytics-card">
+                        <div class="analytics-card-header">
+                            <div class="card-title-group">
+                                <i class="fas fa-calendar-alt accent-purple"></i>
+                                <div>
+                                    <h3 class="card-title-text">Daily Sales Volume</h3>
+                                    <span class="card-subtitle-text">Daily sales velocity across the period</span>
+                                </div>
+                            </div>
+                            <span class="badge bg-purple">Real-Time</span>
                         </div>
-                        <a href="/sales" class="btn btn-primary btn-sm w-100 mt-2">View All Sales</a>
+                        <div class="analytics-card-body">
+                            <div class="chart-loading-overlay">
+                                <div class="loading-spinner-emerald"></div>
+                            </div>
+                            <div class="chart-wrapper">
+                                <canvas id="dailySalesChart"></canvas>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
 
-        <!-- Inventory Summary -->
-        <div class="row mb-4">
-            <div class="col-12">
-                <div class="card dashboard-card">
-                    <div class="card-header">
-                        <i class="fas fa-warehouse me-2"></i>Inventory Summary
-                    </div>
-                    <div class="card-body">
-                        <div class="row">
-                            <div class="col-md-4">
-                                <h5>Total Stock</h5>
-                                <h3 class="text-primary" th:text="${inventorySummary.totalStock}">0</h3>
+            <div class="row g-4 mb-4">
+                <!-- Chart 3: Category-wise Sales Doughnut Chart -->
+                <div class="col-lg-4">
+                    <div class="analytics-card">
+                        <div class="analytics-card-header">
+                            <div class="card-title-group">
+                                <i class="fas fa-chart-pie accent-emerald"></i>
+                                <div>
+                                    <h3 class="card-title-text">Category Sales Distribution</h3>
+                                    <span class="card-subtitle-text">Share of revenue across product categories</span>
+                                </div>
                             </div>
-                            <div class="col-md-4">
-                                <h5>Out of Stock</h5>
-                                <h3 class="text-danger" th:text="${inventorySummary.outOfStockCount}">0</h3>
+                        </div>
+                        <div class="analytics-card-body">
+                            <div class="chart-loading-overlay">
+                                <div class="loading-spinner-emerald"></div>
                             </div>
-                            <div class="col-md-4">
-                                <h5>Low Stock</h5>
-                                <h3 class="text-warning" th:text="${inventorySummary.lowStockCount}">0</h3>
+                            <div class="chart-wrapper">
+                                <canvas id="categorySalesChart"></canvas>
                             </div>
                         </div>
                     </div>
                 </div>
+
+                <!-- Chart 4: Best-Selling Products Horizontal Bar Chart -->
+                <div class="col-lg-4">
+                    <div class="analytics-card">
+                        <div class="analytics-card-header">
+                            <div class="card-title-group">
+                                <i class="fas fa-medal accent-blue"></i>
+                                <div>
+                                    <h3 class="card-title-text">Top-Selling Products</h3>
+                                    <span class="card-subtitle-text">Highest unit volume products sold</span>
+                                </div>
+                            </div>
+                            <span class="badge bg-secondary">Top Performers</span>
+                        </div>
+                        <div class="analytics-card-body">
+                            <div class="chart-loading-overlay">
+                                <div class="loading-spinner-emerald"></div>
+                            </div>
+                            <div class="chart-wrapper">
+                                <canvas id="topProductsChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Chart 5: Inventory Stock Analysis Chart -->
+                <div class="col-lg-4">
+                    <div class="analytics-card">
+                        <div class="analytics-card-header">
+                            <div class="card-title-group">
+                                <i class="fas fa-warehouse accent-amber"></i>
+                                <div>
+                                    <h3 class="card-title-text">Inventory Stock Health</h3>
+                                    <span class="card-subtitle-text">Stock ratios and replenishment status</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="analytics-card-body">
+                            <div class="chart-loading-overlay">
+                                <div class="loading-spinner-emerald"></div>
+                            </div>
+                            <div class="chart-wrapper">
+                                <canvas id="inventoryStatusChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Chart 6 & Summary Row -->
+            <div class="row g-4 mb-4">
+                <!-- Chart 6: Profit and Expense Comparison -->
+                <div class="col-lg-6">
+                    <div class="analytics-card">
+                        <div class="analytics-card-header">
+                            <div class="card-title-group">
+                                <i class="fas fa-balance-scale accent-purple"></i>
+                                <div>
+                                    <h3 class="card-title-text">Profit & Cost of Goods Comparison</h3>
+                                    <span class="card-subtitle-text">Revenue vs Cost of Goods (COGS) vs Net Gross Profit</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="analytics-card-body">
+                            <div class="chart-loading-overlay">
+                                <div class="loading-spinner-emerald"></div>
+                            </div>
+                            <div class="chart-wrapper">
+                                <canvas id="profitExpenseChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Period Performance Summary Widget -->
+                <div class="col-lg-6">
+                    <div class="analytics-card">
+                        <div class="analytics-card-header">
+                            <div class="card-title-group">
+                                <i class="fas fa-bolt accent-emerald"></i>
+                                <div>
+                                    <h3 class="card-title-text">Period Snapshot Summary</h3>
+                                    <span class="card-subtitle-text">Real-time database aggregated financial metrics</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="analytics-card-body d-flex flex-column justify-content-around">
+                            <div class="row g-3">
+                                <div class="col-6">
+                                    <div class="p-3 rounded-3" style="background: var(--bg-surface-elevated); border: 1px solid var(--border-color);">
+                                        <small class="text-muted text-uppercase fw-bold">Period Revenue</small>
+                                        <h3 id="periodRevenueDisplay" class="accent-emerald fw-bold mt-1 mb-0" th:text="'$' + ${stats.monthlyRevenue ?: 0.0}">$0.00</h3>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="p-3 rounded-3" style="background: var(--bg-surface-elevated); border: 1px solid var(--border-color);">
+                                        <small class="text-muted text-uppercase fw-bold">Period Orders</small>
+                                        <h3 id="periodSalesCountDisplay" class="text-primary fw-bold mt-1 mb-0" th:text="${stats.todaySalesCount ?: 0} + ' orders'">0 orders</h3>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="p-3 rounded-3" style="background: var(--bg-surface-elevated); border: 1px solid var(--border-color);">
+                                        <small class="text-muted text-uppercase fw-bold">Total Inventory Valuation</small>
+                                        <h3 class="text-warning fw-bold mt-1 mb-0" th:text="'$' + (${inventorySummary != null && inventorySummary.totalInventoryValue != null ? inventorySummary.totalInventoryValue : 0.0})">$0.00</h3>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="p-3 rounded-3" style="background: var(--bg-surface-elevated); border: 1px solid var(--border-color);">
+                                        <small class="text-muted text-uppercase fw-bold">Active Suppliers</small>
+                                        <h3 class="accent-purple fw-bold mt-1 mb-0" th:text="${stats.totalSuppliers ?: 0} + ' partners'">0 partners</h3>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ==========================================================================
+                 3. Operational Tables: Low Stock & Recent Transactions
+                 ========================================================================== -->
+            <div class="row g-4 mb-4">
+                <!-- Table 1: Low Stock Critical Alerts -->
+                <div class="col-xl-6">
+                    <div class="premium-table-card">
+                        <div class="analytics-card-header">
+                            <div class="card-title-group">
+                                <i class="fas fa-exclamation-triangle text-warning"></i>
+                                <div>
+                                    <h3 class="card-title-text">Low Stock Alert Ledger</h3>
+                                    <span class="card-subtitle-text">SKUs requiring immediate replenishment</span>
+                                </div>
+                            </div>
+                            <a th:href="@{/inventory/low-stock}" class="btn btn-sm btn-outline-warning">View All</a>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-dark-premium">
+                                <thead>
+                                    <tr>
+                                        <th>Product SKU / Name</th>
+                                        <th>Category</th>
+                                        <th>Current</th>
+                                        <th>Min Safety</th>
+                                        <th>Status</th>
+                                        <th class="text-end">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr th:each="product : ${stats.lowStockProducts}">
+                                        <td>
+                                            <div class="fw-bold" th:text="${product.name}">Product</div>
+                                            <small class="text-muted" th:text="${product.productCode}">SKU-001</small>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-secondary" th:text="${product.category != null ? product.category.name : 'General'}">Category</span>
+                                        </td>
+                                        <td>
+                                            <span class="fw-bold text-danger" th:text="${product.stockQuantity}">0</span>
+                                        </td>
+                                        <td th:text="${product.minimumStock}">10</td>
+                                        <td>
+                                            <span th:if="${product.stockQuantity == 0}" class="pill-badge pill-danger">OUT OF STOCK</span>
+                                            <span th:if="${product.stockQuantity > 0}" class="pill-badge pill-warning">LOW STOCK</span>
+                                        </td>
+                                        <td class="text-end">
+                                            <a th:href="@{/inventory/adjust(productId=${product.id})}" class="btn btn-sm btn-outline-light">
+                                                <i class="fas fa-plus-circle me-1"></i>Restock
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    <tr th:if="${stats.lowStockProducts == null || stats.lowStockProducts.empty}">
+                                        <td colspan="6">
+                                            <div class="empty-state-box py-4">
+                                                <i class="fas fa-check-double text-success fa-2x mb-2"></i>
+                                                <p class="mb-0 text-muted">All inventory levels are currently within safe thresholds.</p>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Table 2: Recent Transactions & POS Activity -->
+                <div class="col-xl-6">
+                    <div class="premium-table-card">
+                        <div class="analytics-card-header">
+                            <div class="card-title-group">
+                                <i class="fas fa-receipt accent-emerald"></i>
+                                <div>
+                                    <h3 class="card-title-text">Recent POS Transactions</h3>
+                                    <span class="card-subtitle-text">Latest processed retail billing invoices</span>
+                                </div>
+                            </div>
+                            <a th:href="@{/sales}" class="btn btn-sm btn-outline-success">All Sales</a>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-dark-premium">
+                                <thead>
+                                    <tr>
+                                        <th>Invoice #</th>
+                                        <th>Customer</th>
+                                        <th>Time</th>
+                                        <th>Method</th>
+                                        <th>Amount</th>
+                                        <th class="text-end">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr th:each="sale : ${stats.recentSales}">
+                                        <td>
+                                            <span class="fw-bold accent-emerald" th:text="${sale.invoiceNumber}">INV-1001</span>
+                                        </td>
+                                        <td>
+                                            <span th:text="${sale.customer != null ? sale.customer.name : 'Walk-in Customer'}">Walk-in</span>
+                                        </td>
+                                        <td>
+                                            <small class="text-muted" th:text="${#temporals.format(sale.saleDate, 'MMM dd, HH:mm')}">Nov 16, 12:30</small>
+                                        </td>
+                                        <td>
+                                            <span th:if="${sale.paymentMethod == 'CASH'}" class="pill-badge pill-cash">CASH</span>
+                                            <span th:if="${sale.paymentMethod == 'CARD'}" class="pill-badge pill-card">CARD</span>
+                                            <span th:if="${sale.paymentMethod == 'UPI'}" class="pill-badge pill-upi">UPI</span>
+                                            <span th:if="${sale.paymentMethod != 'CASH' && sale.paymentMethod != 'CARD' && sale.paymentMethod != 'UPI'}" 
+                                                  class="pill-badge pill-cash" th:text="${sale.paymentMethod}">OTHER</span>
+                                        </td>
+                                        <td>
+                                            <span class="fw-bold" th:text="'$' + ${#numbers.formatDecimal(sale.totalAmount, 1, 'COMMA', 2, 'POINT')}">$0.00</span>
+                                        </td>
+                                        <td class="text-end">
+                                            <a th:href="@{/billing/invoice/{id}(id=${sale.id})}" class="btn btn-sm btn-outline-light" title="View Invoice">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    <tr th:if="${stats.recentSales == null || stats.recentSales.empty}">
+                                        <td colspan="6">
+                                            <div class="empty-state-box py-4">
+                                                <i class="fas fa-shopping-basket fa-2x mb-2 text-muted"></i>
+                                                <p class="mb-0 text-muted">No sales transactions registered yet.</p>
+                                                <a th:href="@{/billing}" class="btn btn-sm btn-outline-success mt-2">Create First Bill</a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+</div>
+
+<!-- Settings Modal -->
+<div class="modal fade" id="settingsModal" tabindex="-1" aria-labelledby="settingsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="background-color: var(--bg-card); border: 1px solid var(--border-color); color: var(--text-primary);">
+            <div class="modal-header border-bottom" style="border-color: var(--border-color) !important;">
+                <h5 class="modal-title" id="settingsModalLabel"><i class="fas fa-sliders-h accent-emerald me-2"></i>System Settings</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label text-muted">Application Name</label>
+                    <input type="text" class="form-control" style="background: var(--bg-input); border-color: var(--border-color); color: var(--text-primary);" value="RetailPro Enterprise" readonly>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label text-muted">Current Theme Preference</label>
+                    <p class="text-secondary small">You can toggle between Dark Premium and Light mode using the sun/moon icon in the top header at any time.</p>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label text-muted">Database Engine</label>
+                    <input type="text" class="form-control" style="background: var(--bg-input); border-color: var(--border-color); color: var(--text-primary);" value="MySQL 8.0 / Hibernate 6" readonly>
+                </div>
+            </div>
+            <div class="modal-footer border-top" style="border-color: var(--border-color) !important;">
+                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
             </div>
         </div>
     </div>
+</div>
 
-    <div th:replace="~{layout/header :: scripts}"></div>
-    <script th:inline="javascript">
-        // Sales Chart
-        const ctx = document.getElementById('salesChart').getContext('2d');
-        const monthlySales = /*[[${chartData.monthlySales}]]*/ {};
-        
-        const labels = Object.keys(monthlySales).map(month => {
-            const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-            return monthNames[parseInt(month) - 1];
-        });
-        const data = Object.values(monthlySales);
-        
-        new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: labels,
-                datasets: [{
-                    label: 'Monthly Revenue',
-                    data: data,
-                    borderColor: '#667eea',
-                    backgroundColor: 'rgba(102, 126, 234, 0.1)',
-                    fill: true,
-                    tension: 0.4
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        display: false
-                    }
-                },
-                scales: {
-                    y: {
-                        beginAtZero: true
-                    }
-                }
-            }
-        });
-    </script>
+<!-- Layout Scripts -->
+<div th:replace="~{layout/header :: scripts}"></div>
+
 </body>
 </html>

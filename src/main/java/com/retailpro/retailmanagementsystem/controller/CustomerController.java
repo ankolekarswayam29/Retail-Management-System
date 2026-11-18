@@ -81,8 +81,9 @@ public class CustomerController {
     }
 
     /**
-     * Delete customer
+     * Delete customer (Admin only)
      */
+    @org.springframework.security.access.prepost.PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/customers/delete/{id}")
     public String deleteCustomer(@PathVariable Long id, RedirectAttributes redirectAttributes) {
         try {

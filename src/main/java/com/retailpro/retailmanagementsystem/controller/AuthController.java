@@ -1,42 +1,91 @@
+
 package com.retailpro.retailmanagementsystem.controller;
 
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import com.retailpro.retailmanagementsystem.entity.LoginRequest;
+import com.retailpro.retailmanagementsystem.entity.LoginResponse;
+import com.retailpro.retailmanagementsystem.service.AuthService;
 
-/**
- * Controller for Authentication operations
- * Handles login and logout pages
- */
-@Controller
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
+import org.springframework.security.web.context.SecurityContextRepository;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.Map;
+
+@RestController
+@RequestMapping("/api/auth")
+@CrossOrigin(origins = "*")
 public class AuthController {
 
-    /**
-     * Display login page
-     */
-    @GetMapping("/login")
-    public String login(@RequestParam(value = "error", required = false) String error,
-                        @RequestParam(value = "logout", required = false) String logout,
-                        Model model) {
-        
-        if (error != null) {
-            model.addAttribute("error", "Invalid username or password");
-        }
-        
-        if (logout != null) {
-            model.addAttribute("message", "You have been logged out successfully");
-        }
+    private final AuthService authService;
+    private final AuthenticationManager authenticationManager;
 
-        return "login";
+    private final SecurityContextRepository securityContextRepository =
+            new HttpSessionSecurityContextRepository();
+
+    public AuthController(
+            AuthService authService,
+            AuthenticationManager authenticationManager) {
+
+        this.authService = authService;
+        this.authenticationManager = authenticationManager;
     }
 
-    /**
-     * Display access denied page
-     */
-    @GetMapping("/access-denied")
-    public String accessDenied(Model model) {
-        model.addAttribute("error", "Access Denied");
-        return "access-denied";
+    @PostMapping("/login")
+    public ResponseEntity<?> login(
+            @RequestBody LoginRequest request,
+            HttpServletRequest httpRequest,
+            HttpServletResponse httpResponse) {
+
+        try {
+            // Authenticate using Spring Security
+            Authentication authentication =
+                    authenticationManager.authenticate(
+                            new UsernamePasswordAuthenticationToken(
+                                    request.getUsername(),
+                                    request.getPassword()
+                            )
+                    );
+
+            // Execute existing login logic
+            LoginResponse response = authService.login(request);
+
+            // Create authenticated security context
+            SecurityContext context =
+                    SecurityContextHolder.createEmptyContext();
+
+            context.setAuthentication(authentication);
+            SecurityContextHolder.setContext(context);
+
+            // Save authentication into HTTP session
+            securityContextRepository.saveContext(
+                    context,
+                    httpRequest,
+                    httpResponse
+            );
+
+            return ResponseEntity.ok(response);
+
+        } catch (RuntimeException e) {
+
+            SecurityContextHolder.clearContext();
+
+            return ResponseEntity
+                    .status(401)
+                    .body(Map.of(
+                            "message",
+                            e.getMessage() != null
+                                    ? e.getMessage()
+                                    : "Authentication failed"
+                    ));
+        }
     }
 }

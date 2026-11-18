@@ -43,4 +43,22 @@ public interface SaleItemRepository extends JpaRepository<SaleItem, Long> {
      */
     @Query("SELECT COALESCE(SUM(si.quantity), 0) FROM SaleItem si WHERE si.product.id = :productId")
     Long calculateTotalSoldByProduct(@Param("productId") Long productId);
+
+    /**
+     * Top selling products with product name, total quantity, and revenue
+     */
+    @Query("SELECT si.product.name, SUM(si.quantity), COALESCE(SUM(si.totalPrice), 0) FROM SaleItem si GROUP BY si.product.name ORDER BY SUM(si.quantity) DESC")
+    List<Object[]> findTopSellingProducts();
+
+    /**
+     * Category-wise sales summary
+     */
+    @Query("SELECT si.product.category.name, COALESCE(SUM(si.totalPrice), 0) FROM SaleItem si GROUP BY si.product.category.name ORDER BY SUM(si.totalPrice) DESC")
+    List<Object[]> findCategorySalesSummary();
+
+    /**
+     * Total Revenue and Total Cost of Goods Sold (Expense)
+     */
+    @Query("SELECT COALESCE(SUM(si.totalPrice), 0), COALESCE(SUM(si.quantity * si.product.purchasePrice), 0) FROM SaleItem si")
+    List<Object[]> calculateRevenueAndExpense();
 }

@@ -58,8 +58,9 @@ public class InventoryController {
     }
 
     /**
-     * Display stock adjustment form
+     * Display stock adjustment form (Admin only)
      */
+    @org.springframework.security.access.prepost.PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/inventory/adjust/{id}")
     public String showAdjustForm(@PathVariable Long id, Model model) {
         Product product = productService.getProductById(id)
@@ -69,8 +70,9 @@ public class InventoryController {
     }
 
     /**
-     * Adjust stock
+     * Adjust stock (Admin only)
      */
+    @org.springframework.security.access.prepost.PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/inventory/adjust")
     public String adjustStock(@RequestParam Long productId,
                               @RequestParam Integer newQuantity,
