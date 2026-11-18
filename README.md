@@ -132,7 +132,8 @@ spring.datasource.password=your_password
 ### 1. Clone or Download the Project
 
 ```bash
-cd c:/Users/swaya/OneDrive/Documents/RetailPro
+git clone https://github.com/ankolekarswayam29/Retail-Management-System.git
+cd Retail-Management-System
 ```
 
 ### 2. Build the Project
@@ -187,12 +188,7 @@ http://localhost:8080
 
 ## 🔐 Default Login Credentials
 
-The application automatically creates a default admin user on first startup:
-
-- **Username:** `admin`
-- **Password:** `admin123`
-
-**⚠️ Security Warning:** Please change the default password after your first login!
+Initial Admin Setup: Configure the administrator credentials using the environment variables supported by the application. Change the initial password immediately after setup
 
 ## 📁 Project Structure
 
@@ -424,6 +420,6 @@ For issues or questions:
 ---
 
 **Version:** 1.0.0  
-**Last Updated:** 2024  
+**Last Updated:** 2026  
 **Java Version:** 21  
 **Spring Boot Version:** 3.2.0
